@@ -3,7 +3,7 @@ import requests
 
 class TestFlaskServer(unittest.TestCase):
     def test_server_running(self):
-        url = "http://192.168.4.185:6000"
+        url = "http://192.168.4.135:6000"
         
         try:
             response = requests.get(url, timeout=5) 
