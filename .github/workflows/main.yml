@@ -1,7 +1,7 @@
 name: Run Tests on Merge
 
 on:
-  push: # Runs after merging into dev or main
+  push:  # Runs after merging into dev or main
     branches:
       - dev
       - main
@@ -14,7 +14,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Ensures full commit history
+          fetch-depth: 0  # Ensures full commit history
 
       - name: Set up Python
         uses: actions/setup-python@v4
