@@ -5,12 +5,15 @@ click==8.1.8
 Flask==3.1.0
 flask-cors==5.0.1
 gunicorn==23.0.0
+httplib2==0.22.0
 idna==3.10
 itsdangerous==2.2.0
 Jinja2==3.1.5
+magicmock==0.3
 MarkupSafe==3.0.2
 mysql-connector==2.2.9
 packaging==24.2
+pyparsing==3.2.1
 python-dotenv==1.0.1
 requests==2.32.3
 urllib3==2.3.0
