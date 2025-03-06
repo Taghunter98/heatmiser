@@ -1,0 +1,30 @@
+name: Run Tests on Merge
+
+on:
+  push:  # Runs after merging into dev or main
+    branches:
+      - dev
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full commit history
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          ./venv/bin/pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: ./venv/bin/python -m unittest discover -s app/tests -p "*.py"
