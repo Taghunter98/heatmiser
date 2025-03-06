@@ -1,7 +1,7 @@
-name: Run Tests Before Merge
+name: Run Tests on Merge
 
 on:
-  pull_request:
+  push: # Runs after merging into dev or main
     branches:
       - dev
       - main
@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Ensures full commit history
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -22,10 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
+          ./venv/bin/pip install -r requirements.txt
 
       - name: Run unit tests
-        run: |
-          source venv/bin/activate
-          python -m unittest discover -s app/tests -p "*.py"
+        run: ./venv/bin/python -m unittest discover -s app/tests -p "*.py"
