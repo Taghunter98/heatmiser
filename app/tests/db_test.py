@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch  
 from app.database import database_setup
+import os
 
 class TestDatabase(unittest.TestCase):
     @patch("app.database.database_setup.connect")
