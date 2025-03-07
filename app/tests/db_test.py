@@ -2,7 +2,6 @@ import unittest
 from unittest.mock import patch
 from app.database import database_setup
 import os
-import mysql.connector
 
 class TestDatabase(unittest.TestCase):
     @unittest.skipIf(os.getenv("CI"), "Skipping test in CI pipeline")

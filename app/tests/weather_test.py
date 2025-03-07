@@ -31,6 +31,7 @@ class TestDatabase(unittest.TestCase):
         # Check returned object is string
         self.assertIsInstance(time, str, "Object is not type string")
 
+    @unittest.skipIf(os.getenv("CI"), "Skipping test in CI pipeline")
     def testStoreData(self):
         api = weather.WeatherApi('London', 1)
         data = api.callApi()
