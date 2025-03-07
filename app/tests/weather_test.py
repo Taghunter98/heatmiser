@@ -1,6 +1,7 @@
 import unittest
 from app.weather_api import weather
 from app.database import database_setup
+import os
 
 class TestDatabase(unittest.TestCase):
     def testCallWeatherApi(self):
@@ -37,10 +38,26 @@ class TestDatabase(unittest.TestCase):
         time = api.parseDataTime(data)
         store = api.storeData(temp, time)
 
+        # Check the data is being stored
         self.assertNotEqual(store, -1, "Data is not being stored correcly")
 
         # Delete text 
         database_setup.delete('TempData', ['mintemp', 'date_added'], [temp, time])
+
+    def testCheckTime(self):
+        api = weather.WeatherApi('London', 1)
+
+        # Check that the number being returned is valid only if midnight
+        self.assertNotEqual(api.checkTime(6), -1, "Date is not being returned")
+
+    @unittest.skipIf(os.getenv("CI"), "Skipping test in CI pipeline")
+    def testWeatherApi(self):
+        api = weather.WeatherApi('London', 1)
+
+        # Run local test to check if data is being stored
+        result = api.weatherApi()
+
+        self.assertNotEqual(result, -1, "Data is not being stored")
 
 if __name__ == "__main__":
     unittest.main()

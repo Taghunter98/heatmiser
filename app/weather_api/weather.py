@@ -1,12 +1,27 @@
 import requests
 from app.database import database_setup
 import mysql.connector
+import datetime
 
 class WeatherApi():
     def __init__(self, postcode, days):
         self.postcode = postcode
         self.days = days
         pass
+
+    def weatherApi(self):
+        # Get the current time
+        cur_time = datetime.datetime.now()
+
+        # Call function only if the current time is midnight
+        if self.checkTime(cur_time.hour) != -1:
+            data = self.callApi()
+            temp = self.parseDataTemp(data)
+            time = self.parseDataTime(data)
+            self.storeData(temp, time)
+            return 1
+        else:
+            return -1
 
     def callApi(self):
         
@@ -48,13 +63,11 @@ class WeatherApi():
         except mysql.connector.Error as e:
             print(f"Error: {e}")
             return -1
-
-# TESTING
-api = WeatherApi('TN174HH', 1)
-response = api.callApi()
-temp = api.parseDataTemp(response)
-time = api.parseDataTime(response)
-print(temp)
-print(time)
-api.storeData(temp, time)
-# Call at 6am daily
+        
+    def checkTime(self, time):
+        # Check if the time is midnight
+        if time == 0:
+            return time
+        else:
+            return -1
+        
