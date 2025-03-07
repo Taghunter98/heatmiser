@@ -49,7 +49,7 @@ class TestDatabase(unittest.TestCase):
         api = weather.WeatherApi('London', 1)
 
         # Check that the number being returned is valid only if midnight
-        self.assertNotEqual(api.checkTime(6), -1, "Date is not being returned")
+        self.assertNotEqual(api.checkTime(0), -1, "Date is not being returned")
 
     @unittest.skipIf(os.getenv("CI"), "Skipping test in CI pipeline")
     def testWeatherApi(self):
