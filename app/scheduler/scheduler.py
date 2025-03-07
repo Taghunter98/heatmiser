@@ -3,6 +3,9 @@ import datetime
 import threading
 import time
 
+from app.weather_api import weather
+from app.commands import commands
+
 class Scheduler():
     def __init__(self, trigger_hour=0, trigger_minute=0):
         # Creates the scheduler with modular time
@@ -17,6 +20,10 @@ class Scheduler():
         print(f"Running scheduled Recipe at {datetime.datetime.now()}")
 
         # Fetch, store and retrieve weather API
+        api = weather.WeatherApi('TN174HH', 1)
+        min_temp = api.weatherApi()
+        print(min_temp)
+
         # Check temperature and run Recipe based on it
 
         # Schedule next Recipe
@@ -48,3 +55,7 @@ class Scheduler():
         if self.thread and self.thread.is_alive():
             self.thread.join(timeout=1)
         print("Scheduler stopped.")
+
+scheduler = Scheduler(14, 8)
+time.sleep(20)  # Simulate some time before stopping
+scheduler.stop()

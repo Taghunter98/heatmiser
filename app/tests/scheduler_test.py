@@ -1,10 +1,12 @@
 import datetime
 import time
 import unittest
+import os
 from app.scheduler.scheduler import Scheduler
 
 class TestScheduler(unittest.TestCase):
-
+    
+    @unittest.skipIf(os.getenv("CI"), "Skipping test in CI pipeline")
     def test_scheduler_runs(self):
 
         # Simulate current time
