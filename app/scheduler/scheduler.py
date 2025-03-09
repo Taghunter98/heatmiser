@@ -1,56 +1,117 @@
 import datetime
 from flask import Blueprint, jsonify
+import logging
+from dotenv import load_dotenv
+import os
+
+# Modules
 from app.weather_api import weather
 from app.commands.commands import Command
+
+# Email
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Create a Blueprint
 scheduler_bp = Blueprint("scheduler_bp", __name__)
 
+# Configure logging
+logging.basicConfig(
+    filename="heating.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 class Scheduler:
     def __init__(self, app):
             self.app = app
-            
+    
+    def sendEmail(self, message):
+        # Email Configuration
+        load_dotenv('app/.env')
+        EMAIL_SENDER = os.getenv('EMAIL_SENDER')
+        EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
+        EMAIL_RECEIVER = os.getenv('EMAIL_RECEIVER')
+        
+        try:
+            # Set up the MIME message
+            msg = MIMEMultipart()
+            msg['From'] = "Heatmiser Automation"  # Just the sender name
+            msg['To'] = EMAIL_RECEIVER
+            msg['Subject'] = "Heating Recipe Triggered"
+
+            # Attach message body
+            msg.attach(MIMEText(message, 'plain'))
+
+            # Connect to the SMTP server
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+                server.sendmail(EMAIL_SENDER, EMAIL_RECEIVER, msg.as_string())
+        
+                logging.info(f"Email notification sent: {message}")
+        except Exception as e:
+            logging.error(f"Error sending email: {str(e)}")
+
+
     def run(self):
         # Run heating recipe based on weather conditions
         with self.app.app_context():
-            print(f"Running scheduled Recipe at {datetime.datetime.now()}")
+            logging.info(f"Running scheduled Recipe at {datetime.datetime.now()}")
 
             # Fetch, store and retrieve weather API
-            print("Fetching weather data...")
+            logging.info("Fetching weather data...")
             try:
-              api = weather.WeatherApi('TN174HH', 1)
-              min_temp = api.weatherApi()
-              print(f"Today's minimum temperatue is {min_temp}")
+                api = weather.WeatherApi('TN174HH', 1)
+                min_temp = api.weatherApi()
+                email_temp = f"\n\n24 hour minimum temperature is {min_temp}°C"
+                logging.info(f"24 hour minimum temperature is {min_temp}°C")
             except Exception as e:
-              print(f"Error: {e}")
+                logging.error(f"Error: {e}")
+                return jsonify({"status": "error", "message": str(e)}), 500
 
             # Set up Recipe
             try:
                 recipe = Command("wss://192.168.4.174:4243", "0e0df290-8821-4de8-b14a-45cd3b83c33f")
-                print("Connected to Heatmiser Neo")
+                logging.info("Connected to Heatmiser Neo")
 
                 # Check temperature and run Recipe based on it
                 if min_temp > 9:
+                    message = "Heatmiser Neo is running 6am Heating Start Recipe..."
                     recipe.runRecipe("6am Start Time.")
-                    return jsonify({"status": "success", "message": "Running 6am Heating Start Recipe..."})
                 elif min_temp > 5:
+                    message = "Heatmiser Neo is running 4:30am Heating Start Recipe..."
                     recipe.runRecipe("4.30 am Heating Start")
-                    return jsonify({"status": "success", "message": "Running 4:30am Heating Start Recipe..."})
                 elif min_temp > 1:
+                    message = "Heatmiser Neo is running 3:30am Heating Start Recipe..."
                     recipe.runRecipe("3.30am Heating Start.")
-                    return jsonify({"status": "success", "message": "Running 3:30am Heating Start Recipe..."})
                 elif min_temp > -3:
+                    message = "Heatmiser Neo is running 2am Heating Start Recipe..."
                     recipe.runRecipe("2am Heating Start.")
-                    return jsonify({"status": "success", "message": "Running 2am Heating Start Recipe..."})
                 else:
-                    return jsonify({"status": "error", "message": "Temperature out of range."})
+                    message = "Temperature out of range. No heating started."
+                    logging.warning(message)
+                    return jsonify({"status": "error", "message": message}), 400
+
+                # Log and send email 
+                logging.info(message)
+                self.sendEmail((message + email_temp))
+
+                # Return success response if no issues
+                return jsonify({"status": "success", "message": message})
 
             except Exception as e:
-                return jsonify({"status": "error", "message": str(e)})
+                return jsonify({"status": "error", "message": str(e)}), 500
 
 # Endpoint to run a Recipe
 @scheduler_bp.route("/run", methods=["POST"])
 def run_schedule():
     from flask import current_app
     scheduler = Scheduler(current_app)
-    return scheduler.run()
+    result = scheduler.run()
+
+    # Check if the schedule returns a result for email
+    if result:
+        return result
+    return jsonify({"status": "error", "message": "No result returned from scheduler."}), 500

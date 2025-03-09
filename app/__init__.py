@@ -5,8 +5,6 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.scheduler.scheduler import scheduler_bp, Scheduler
 
-from app.scheduler.scheduler import scheduler_bp
-
 def create_app():
     # Create and configure application
     app = Flask(__name__, instance_relative_config=True)
