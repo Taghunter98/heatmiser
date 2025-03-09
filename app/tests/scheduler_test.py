@@ -1,5 +1,4 @@
-import datetime
-import time
+from flask import Flask, jsonify
 import unittest
 import os
 from app.scheduler.scheduler import Scheduler
@@ -8,22 +7,22 @@ class TestScheduler(unittest.TestCase):
     
     @unittest.skipIf(os.getenv("CI"), "Skipping test in CI pipeline")
     def test_scheduler_runs(self):
-
-        # Simulate current time
-        mock_now = datetime.datetime.now()
-
-        # Create scheduler with near-future trigger time
-        scheduler = Scheduler(trigger_hour=mock_now.hour, trigger_minute=(mock_now.minute + 1) % 60)
-
-        # Wait for 5 seconds to check if the thread starts
-        time.sleep(5)
+        # Create a Flask app context to test the function that uses jsonify
+        app = Flask(__name__)
         
-        # Assert that the thread is running
-        self.assertTrue(scheduler.running, "Scheduler thread should be running.")
+        with app.app_context():
+            # Instantiate Scheduler and call the run method
+            api = Scheduler()
+            job = api.run()
 
-        # Stop the scheduler after the test
-        scheduler.stop()
-        self.assertFalse(scheduler.running, "Scheduler thread should stop after calling stop().")
+            # Check that the response has a 200 status code
+            self.assertEqual(job.status_code, 200, "Expected status code 200")
+
+            # Parse JSON response
+            json_response = job.get_json()
+
+            # Check that the 'status' key in the response is 'success'
+            self.assertEqual(json_response.get("status"), "success", "API call is not working as expected")
 
 if __name__ == "__main__":
     unittest.main()

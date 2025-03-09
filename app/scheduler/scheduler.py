@@ -11,8 +11,13 @@ class Scheduler:
         print(f"Running scheduled Recipe at {datetime.datetime.now()}")
 
         # Fetch, store and retrieve weather API
-        api = weather.WeatherApi('TN174HH', 1)
-        min_temp = api.weatherApi()
+        print("Fetching weather data...")
+        try:
+            api = weather.WeatherApi('TN174HH', 1)
+            min_temp = api.weatherApi()
+            print(f"Today's minimum temperatue is {min_temp}")
+        except Exception as e:
+            print(f"Error: {e}")
 
         # Set up Recipe
         try:
@@ -38,7 +43,7 @@ class Scheduler:
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)})
 
-# Define an API endpoint to trigger the scheduler
+# Endpoint to run a Recipe
 @scheduler_bp.route("/run", methods=["POST"])
 def run_schedule():
     scheduler = Scheduler()

@@ -61,8 +61,3 @@ class WeatherApi():
         except mysql.connector.Error as e:
             print(f"Error: {e}")
             return -1
-        
-        
-api = WeatherApi('TN174HH', 1)
-data = api.weatherApi()
-print(data)
