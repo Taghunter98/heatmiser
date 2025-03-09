@@ -2,6 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+from apscheduler.schedulers.background import BackgroundScheduler
+from app.scheduler.scheduler import scheduler_bp, Scheduler
 
 from app.scheduler.scheduler import scheduler_bp
 
@@ -28,5 +30,9 @@ def create_app():
     @app.route('/')
     def home():
         return "Server is running", 200
+    
+    scheduler = BackgroundScheduler()
+    job = scheduler.add_job(Scheduler(app).run, "cron", hour=0, minute=0)
+    scheduler.start()
 
     return app

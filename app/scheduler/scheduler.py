@@ -7,44 +7,50 @@ from app.commands.commands import Command
 scheduler_bp = Blueprint("scheduler_bp", __name__)
 
 class Scheduler:
+    def __init__(self, app):
+            self.app = app
+            
     def run(self):
-        print(f"Running scheduled Recipe at {datetime.datetime.now()}")
+        # Run heating recipe based on weather conditions
+        with self.app.app_context():
+            print(f"Running scheduled Recipe at {datetime.datetime.now()}")
 
-        # Fetch, store and retrieve weather API
-        print("Fetching weather data...")
-        try:
-            api = weather.WeatherApi('TN174HH', 1)
-            min_temp = api.weatherApi()
-            print(f"Today's minimum temperatue is {min_temp}")
-        except Exception as e:
-            print(f"Error: {e}")
+            # Fetch, store and retrieve weather API
+            print("Fetching weather data...")
+            try:
+              api = weather.WeatherApi('TN174HH', 1)
+              min_temp = api.weatherApi()
+              print(f"Today's minimum temperatue is {min_temp}")
+            except Exception as e:
+              print(f"Error: {e}")
 
-        # Set up Recipe
-        try:
-            recipe = Command("wss://192.168.4.174:4243", "0e0df290-8821-4de8-b14a-45cd3b83c33f")
-            print("Connected to Heatmiser Neo")
+            # Set up Recipe
+            try:
+                recipe = Command("wss://192.168.4.174:4243", "0e0df290-8821-4de8-b14a-45cd3b83c33f")
+                print("Connected to Heatmiser Neo")
 
-            # Check temperature and run Recipe based on it
-            if min_temp > 9:
-                recipe.runRecipe("6am Start Time.")
-                return jsonify({"status": "success", "message": "Running 6am Heating Start Recipe..."})
-            elif min_temp > 5:
-                recipe.runRecipe("4.30 am Heating Start")
-                return jsonify({"status": "success", "message": "Running 4:30am Heating Start Recipe..."})
-            elif min_temp > 1:
-                recipe.runRecipe("3.30am Heating Start.")
-                return jsonify({"status": "success", "message": "Running 3:30am Heating Start Recipe..."})
-            elif min_temp > -3:
-                recipe.runRecipe("2am Heating Start.")
-                return jsonify({"status": "success", "message": "Running 2am Heating Start Recipe..."})
-            else:
-                return jsonify({"status": "error", "message": "Temperature out of range."})
+                # Check temperature and run Recipe based on it
+                if min_temp > 9:
+                    recipe.runRecipe("6am Start Time.")
+                    return jsonify({"status": "success", "message": "Running 6am Heating Start Recipe..."})
+                elif min_temp > 5:
+                    recipe.runRecipe("4.30 am Heating Start")
+                    return jsonify({"status": "success", "message": "Running 4:30am Heating Start Recipe..."})
+                elif min_temp > 1:
+                    recipe.runRecipe("3.30am Heating Start.")
+                    return jsonify({"status": "success", "message": "Running 3:30am Heating Start Recipe..."})
+                elif min_temp > -3:
+                    recipe.runRecipe("2am Heating Start.")
+                    return jsonify({"status": "success", "message": "Running 2am Heating Start Recipe..."})
+                else:
+                    return jsonify({"status": "error", "message": "Temperature out of range."})
 
-        except Exception as e:
-            return jsonify({"status": "error", "message": str(e)})
+            except Exception as e:
+                return jsonify({"status": "error", "message": str(e)})
 
 # Endpoint to run a Recipe
 @scheduler_bp.route("/run", methods=["POST"])
 def run_schedule():
-    scheduler = Scheduler()
+    from flask import current_app
+    scheduler = Scheduler(current_app)
     return scheduler.run()

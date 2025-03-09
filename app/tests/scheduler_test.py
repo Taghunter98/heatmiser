@@ -7,11 +7,11 @@ class TestScheduler(unittest.TestCase):
     
     @unittest.skipIf(os.getenv("CI"), "Skipping test in CI pipeline")
     def test_scheduler_runs(self):
-        # Create a Flask app context to test the function that uses jsonify
+        # Create a Flask app context
         app = Flask(__name__)
         
         with app.app_context():
-            # Instantiate Scheduler and call the run method
+            # Create Scheduler and call the run method
             api = Scheduler()
             job = api.run()
 
