@@ -3,6 +3,8 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
+from app.scheduler.scheduler import scheduler_bp
+
 def create_app():
     # Create and configure application
     app = Flask(__name__, instance_relative_config=True)
@@ -19,6 +21,9 @@ def create_app():
     app.config.from_mapping(
         SECRET_KEY = secret_key
     )
+
+    # Register scheduler
+    app.register_blueprint(scheduler_bp)
 
     @app.route('/')
     def home():

@@ -1,61 +1,45 @@
-import sched
 import datetime
-import threading
-import time
-
+from flask import Blueprint, jsonify
 from app.weather_api import weather
-from app.commands import commands
+from app.commands.commands import Command
 
-class Scheduler():
-    def __init__(self, trigger_hour=0, trigger_minute=0):
-        # Creates the scheduler with modular time
-        self.scheduler = sched.scheduler(time.time, time.sleep)
-        self.trigger_hour = trigger_hour
-        self.trigger_minute = trigger_minute
-        self.running = True
-        self.thread = None
-        self.scheduleNextRecipe()
-    
-    def runRecipe(self):
+# Create a Blueprint
+scheduler_bp = Blueprint("scheduler_bp", __name__)
+
+class Scheduler:
+    def run(self):
         print(f"Running scheduled Recipe at {datetime.datetime.now()}")
 
         # Fetch, store and retrieve weather API
         api = weather.WeatherApi('TN174HH', 1)
         min_temp = api.weatherApi()
-        print(min_temp)
 
-        # Check temperature and run Recipe based on it
+        # Set up Recipe
+        try:
+            recipe = Command("wss://192.168.4.174:4243", "0e0df290-8821-4de8-b14a-45cd3b83c33f")
+            print("Connected to Heatmiser Neo")
 
-        # Schedule next Recipe
-        self.scheduleNextRecipe()
+            # Check temperature and run Recipe based on it
+            if min_temp > 9:
+                recipe.runRecipe("6am Start Time.")
+                return jsonify({"status": "success", "message": "Running 6am Heating Start Recipe..."})
+            elif min_temp > 5:
+                recipe.runRecipe("4.30 am Heating Start")
+                return jsonify({"status": "success", "message": "Running 4:30am Heating Start Recipe..."})
+            elif min_temp > 1:
+                recipe.runRecipe("3.30am Heating Start.")
+                return jsonify({"status": "success", "message": "Running 3:30am Heating Start Recipe..."})
+            elif min_temp > -3:
+                recipe.runRecipe("2am Heating Start.")
+                return jsonify({"status": "success", "message": "Running 2am Heating Start Recipe..."})
+            else:
+                return jsonify({"status": "error", "message": "Temperature out of range."})
 
-    def scheduleNextRecipe(self):
-        # Schedules the next Recipe at the specified trigger time.
-        now = datetime.datetime.now()
-        next_run = datetime.datetime.combine(now.date(), datetime.time(self.trigger_hour, self.trigger_minute))
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
 
-        # If the scheduled time for today has passed, schedule for tomorrow
-        if now > next_run:
-            next_run += datetime.timedelta(days=1)
-
-        delay = (next_run - now).total_seconds()
-        print(f"Next run scheduled in {delay} seconds (at {next_run}).")
-
-        self.scheduler.enter(delay, 1, self.runRecipe)
-
-        # Run the scheduler in a separate thread 
-        threading.Thread(target=self.scheduler.run, daemon=True).start()
-
-        # For debugging 
-        print(f"Active Threads: {threading.enumerate()}")
-
-    def stop(self):
-        print("Stopping scheduler...")
-        self.running = False 
-        if self.thread and self.thread.is_alive():
-            self.thread.join(timeout=1)
-        print("Scheduler stopped.")
-
-scheduler = Scheduler(14, 8)
-time.sleep(20)  # Simulate some time before stopping
-scheduler.stop()
+# Define an API endpoint to trigger the scheduler
+@scheduler_bp.route("/run", methods=["POST"])
+def run_schedule():
+    scheduler = Scheduler()
+    return scheduler.run()
