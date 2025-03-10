@@ -3,9 +3,6 @@
 -- The database contains TempData and ApiKeys Tables
 -- These are designed to work with the Heatmiser app system
 
--- CREATED BY: Josh Bassett on 06/03/2025
--- UPDATED ON: 06/03/2025
-
 CREATE DATABASE Heatmiser;
 
 USE Heatmiser;

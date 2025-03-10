@@ -2,18 +2,27 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+
+# Scheduler import for setting up the recipes
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.scheduler.scheduler import scheduler_bp, Scheduler
 
 def create_app():
-    # Create and configure application
+    """
+    Function to build the Flask application
+
+    Raises:
+        ValueError: If the secret key is missing.
+
+    Returns:
+        object: Flask app object
+    """
+
     app = Flask(__name__, instance_relative_config=True)
     CORS(app, origins='*')
 
-    # Get key
+    
     load_dotenv()
-
-    # Run application only if secret key is provided
     secret_key = os.getenv('SECRET_KEY')
 
     if not secret_key:
@@ -22,13 +31,15 @@ def create_app():
         SECRET_KEY = secret_key
     )
 
-    # Register scheduler
+    # Register blueprints for API calls
     app.register_blueprint(scheduler_bp)
 
     @app.route('/')
     def home():
+        # TODO Will create the frontend in the second release
         return "Server is running", 200
     
+    # Set up the scheduler to run the Recipe at 00:00
     scheduler = BackgroundScheduler()
     job = scheduler.add_job(Scheduler(app).run, "cron", hour=0, minute=0)
     scheduler.start()

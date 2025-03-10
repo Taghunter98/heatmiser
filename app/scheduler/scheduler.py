@@ -16,7 +16,7 @@ from email.mime.multipart import MIMEMultipart
 # Create a Blueprint
 scheduler_bp = Blueprint("scheduler_bp", __name__)
 
-# Configure logging
+# Set up logging in heating.log
 logging.basicConfig(
     filename="heating.log",
     level=logging.INFO,
@@ -24,10 +24,28 @@ logging.basicConfig(
 )
 
 class Scheduler:
+    """
+    This class runs a Recipe on the Heatmiser Neo
+
+    """
+
     def __init__(self, app):
-            self.app = app
+        """
+        Creates the Scheduler object
+
+        Args:
+        app (object): The flask application onject
+        """
+        self.app = app
     
     def sendEmail(self, message):
+        """
+        Method to send an email to the client
+
+        Args:
+            message (string): The message body of the email
+        """
+
         # Email Configuration
         load_dotenv('app/.env')
         EMAIL_SENDER = os.getenv('EMAIL_SENDER')
@@ -35,9 +53,8 @@ class Scheduler:
         EMAIL_RECEIVER = os.getenv('EMAIL_RECEIVER')
         
         try:
-            # Set up the MIME message
             msg = MIMEMultipart()
-            msg['From'] = "Heatmiser Automation"  # Just the sender name
+            msg['From'] = "Heatmiser Automation" 
             msg['To'] = EMAIL_RECEIVER
             msg['Subject'] = "Heating Recipe Triggered"
 
@@ -56,7 +73,13 @@ class Scheduler:
 
 
     def run(self):
-        # Run heating recipe based on weather conditions
+        """
+        Method to run a Recipe
+
+        Returns:
+            JSON: JSON containing either success or error for api
+        """
+
         with self.app.app_context():
             logging.info(f"Running scheduled Recipe at {datetime.datetime.now()}")
 
@@ -98,7 +121,6 @@ class Scheduler:
                 logging.info(message)
                 self.sendEmail((message + email_temp))
 
-                # Return success response if no issues
                 return jsonify({"status": "success", "message": message})
 
             except Exception as e:
@@ -107,6 +129,13 @@ class Scheduler:
 # Endpoint to run a Recipe
 @scheduler_bp.route("/run", methods=["POST"])
 def run_schedule():
+    """
+    API endpoint for running a Recipe manually
+
+    Returns:
+        JSON: JSON containing either success or error for api
+    """
+
     from flask import current_app
     scheduler = Scheduler(current_app)
     result = scheduler.run()
