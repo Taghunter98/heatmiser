@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  heatmiser:
+    build: .
+    container_name: heatmiser_server
+    restart: always
+    ports:
+      - "6000:6000"
+    env_file:
+      - ../heatmiser/app/.env
+    depends_on:
+      - db
+    networks:
+      - heatmiser_network
+
+  db:
+    image: mysql:8
+    container_name: heatmiser_db
+    restart: always
+    env_file:
+      - ../heatmiser/app/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: "${PASS}"
+      MYSQL_DATABASE: "${DATABASE}"
+      MYSQL_USER: "${USER}"
+      MYSQL_PASSWORD: "${PASS}"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - heatmiser_network
+
+networks:
+  heatmiser_network:
+
+volumes:
+  mysql_data:
