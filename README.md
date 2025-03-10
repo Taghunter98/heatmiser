@@ -56,57 +56,28 @@ Built using **Python**, this server was originally developed to help my parents 
    gunicorn -w 1 -b 0.0.0.0:6000 'app:create_app()'
    ```
 
----
+### **(Optional) Setting up Docker**
 
-### **(Optional) Setting up a Systemd Service (Linux)**
+If you'd like to run the application inside a Docker container instead of setting it up manually, follow these steps:
 
-If deploying on a **Linux server**, you can configure **systemd** to run the service automatically on boot:
+1. **Build the Docker image:**
 
-1. **Create a systemd service file:**
    ```bash
-   sudo nano /etc/systemd/system/heatmiser.service
-   ```
-2. **Add the following configuration:**
-
-   ```ini
-   [Unit]
-   Description=Heatmiser Smart Heating Server
-   After=network.target
-
-   [Service]
-   User=<USER>
-   Group=www-data
-   WorkingDirectory=/home/<USER>/heatmiser/heatmiser
-   Environment="PATH=/home/<USER>/heatmiser/htmsr/bin"
-   Environment="VIRTUAL_ENV=/home/<USER>/heatmiser/htmsr"
-   ExecStart=/home/<USER>/heatmiser/htmsr/bin/gunicorn -w 1 -b 0.0.0.0:6000 --access-logfile /home/<USER>/heatmiser/logs/heatmiser_access.log
-
-   # Logging
-   StandardOutput=append:/home/<USER>/heatmiser/logs/heatmiser_stdout.log
-   StandardError=append:/home/<USER>/heatmiser/logs/heatmiser_error.log
-
-   SyslogIdentifier=heatmiser
-
-   [Install]
-   WantedBy=multi-user.target
+   docker build -t heatmiser .
    ```
 
-3. **Save and exit**, then reload **systemd**:
+2. **Run the Docker container:**
+
    ```bash
-   sudo systemctl daemon-reload
+   docker run -d -p 6000:6000 --name heatmiser-container heatmiser
    ```
-4. **Enable the service to start on boot:**
+
+3. **Check the logs** to verify that everything is running correctly:
    ```bash
-   sudo systemctl enable heatmiser.service
+   docker logs -f heatmiser-container
    ```
-5. **Start the service:**
-   ```bash
-   sudo systemctl start heatmiser.service
-   ```
-6. **Check the service status:**
-   ```bash
-   sudo systemctl status heatmiser.service
-   ```
+
+This will run the server in a Docker container, and you can easily manage it with Docker commands.
 
 ---
 
