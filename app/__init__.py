@@ -7,6 +7,8 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.scheduler.scheduler import scheduler_bp, Scheduler
 
+scheduler = BackgroundScheduler()
+
 def create_app():
     """
     Function to build the Flask application
@@ -21,14 +23,14 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     CORS(app, origins='*')
 
-    
     load_dotenv()
     secret_key = os.getenv('SECRET_KEY')
 
     if not secret_key:
-        raise ValueError("Error: SECRET_KEY is messing from environment variables")
+        raise ValueError("Error: SECRET_KEY is missing from environment variables")
+    
     app.config.from_mapping(
-        SECRET_KEY = secret_key
+        SECRET_KEY=secret_key
     )
 
     # Register blueprints for API calls
@@ -36,12 +38,10 @@ def create_app():
 
     @app.route('/')
     def home():
-        # TODO Will create the frontend in the second release
         return "Server is running", 200
-    
-    # Set up the scheduler to run the Recipe at 00:00
-    scheduler = BackgroundScheduler()
-    job = scheduler.add_job(Scheduler(app).run, "cron", hour=0, minute=0)
-    scheduler.start()
+
+    if not scheduler.running:
+        scheduler.add_job(Scheduler(app).run, "cron", hour=0, minute=0)
+        scheduler.start()
 
     return app
