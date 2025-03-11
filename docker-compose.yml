@@ -7,6 +7,7 @@ services:
     restart: always
     ports:
       - "6000:6000"
+      - "587:587"
     env_file:
       - ../heatmiser/app/.env
     depends_on:
