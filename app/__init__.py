@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
+import json
 import os
 import logging
 
@@ -53,9 +54,14 @@ def create_app():
     try:
         if not scheduler.running:
             logging.debug("Scheduler is not running, adding job...")
-            scheduler.add_job(Scheduler(app).run, "cron", hour=0, minute=0)
-            scheduler.start()
-            logging.debug("Scheduler started successfully.")
+            logging.debug("Loading settings from settings.json...")
+            with open('/Users/joshbassett/Documents/Projects/heatmiser/app/settings.json') as file:
+                settings = json.load(file)
+                hour = settings['hour']
+                minute = settings['minute']
+                scheduler.add_job(Scheduler(app).run, "cron", hour = hour, minute = minute)
+                scheduler.start()
+                logging.debug("Scheduler started successfully.")
         else:
             logging.debug("Scheduler is already running.")
     except Exception as e:
